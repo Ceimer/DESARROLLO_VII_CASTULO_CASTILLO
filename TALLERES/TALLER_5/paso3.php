@@ -62,6 +62,4 @@ foreach ($conteoCalificaciones as $letra => $cantidad) {
 ?>
         
 
-git commit -m "Paso 3: Manipulación avanzada de arreglos con datos de estudiantes"
-git push origin main
             
