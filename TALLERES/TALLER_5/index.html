@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller 5: Manejo de arreglos en PHP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark.min.css">
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+
+      .sidebar {
+        width: 250px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 20px;
+        overflow-y: auto;
+        flex-shrink: 0;
+      }
+
+      .main-content {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+      }
+
+      .step {
+        background-color: white;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .step h2 {
+        color: #3498db;
+      }
+
+      pre {
+        position: relative;
+        background-color: #f8f8f8;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        padding: 10px;
+        overflow-x: auto;
+      }
+
+      code {
+        font-family: monospace;
+        font-size: 14px;
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        padding: 5px 10px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      .navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #2980b9;
+      }
+
+      button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+      }
+
+      /* Estilos actualizados para el sidebar */
+      .tutorial-title {
+        cursor: pointer;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #34495e;
+        transition: background-color 0.3s ease;
+      }
+
+      .tutorial-title:hover {
+        background-color: #2980b9;
+      }
+
+      .tutorial-title.active {
+        background-color: #3498db;
+        font-weight: bold;
+      }
+
+      .tutorial-steps {
+        display: none;
+        margin-left: 10px;
+      }
+
+      .tutorial-step {
+        cursor: pointer;
+        margin-bottom: 5px;
+        padding: 8px;
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
+      }
+
+      .tutorial-step:hover {
+        background-color: #465c70;
+      }
+
+      .tutorial-step.active {
+        background-color: #16a085;
+        color: white;
+      }
+
+      /* Añadir un poco más de espacio entre tutoriales */
+      .tutorial-title:not(:first-child) {
+        margin-top: 20px;
+      }
+
+      .active {
+        font-weight: bold;
+        background-color: #34495e;
+      }
+
+      .menu-toggle {
+        display: none;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        cursor: pointer;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: calc(100% - 40px);
+          height: auto;
+          position: fixed;
+          top: 0;
+          left: calc(-100% - 40px);
+          transition: left 0.3s ease;
+        }
+
+        .sidebar.active {
+          left: 0;
+          z-index: 2;
+        }
+
+        .main-content {
+          margin-top: 60px;
+          /* Space for the menu toggle button */
+        }
+
+        .menu-toggle {
+          display: block;
+        }
+
+        .navigation {
+          flex-direction: column;
+        }
+
+        .navigation button {
+          margin-bottom: 10px;
+        }
+
+        code {
+          font-size: 12px;
+        }
+      }
+	  
+	  
+	pre {
+		display: flex;
+		margin-bottom: 0;
+		overflow-x: hidden;
+	}
+
+	pre code {
+		flex: 1;
+	}
+	
+	a {
+		word-wrap: break-word;
+		word-break: break-all;
+		white-space: normal;
+		hyphens: auto;
+	}	
+    </style>
+  </head>
+  <body>
+    <button class="menu-toggle" onclick="toggleSidebar()">☰ Menú</button>
+    <div class="container">
+      <div class="sidebar" id="sidebar"></div>
+      <div class="main-content">
+        <h1 id="mainTitle">Talleres de PHP</h1>
+        <div id="stepContent" class="step"></div>
+        <div class="navigation">
+          <button id="prevBtn" onclick="navigate(-1)" disabled>Anterior</button>
+          <button id="nextBtn" onclick="navigate(1)">Siguiente</button>
+          <button id="nextTutorialBtn" onclick="navigateToNextTutorial()" style="display: none;">Siguiente Taller</button>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/languages/php.min.js"></script>
+    <script>
+      const tutorials = [{
+  "title": "Tutorial Avanzado de Arreglos en PHP",
+  "steps": [
+    {
+      "title": "Paso 1: Configuración Inicial y Arreglos Simples",
+      "content": `
+        <p>Comienza creando la estructura de carpetas correcta y el primer archivo:</p>
+        <ol>
+          <li>En tu repositorio, crea una carpeta llamada <code>TALLERES</code> si aún no existe.</li>
+          <li>Dentro de <code>TALLERES</code>, crea una nueva carpeta llamada <code>TALLER_5</code>.</li>
+          <li>En <code>TALLER_5</code>, crea un archivo llamado <code>paso1.php</code>.</li>
+        </ol>
+        <p>En <code>paso1.php</code>, implementa lo siguiente:</p>
+        <pre><code class="language-php">
+&lt;?php
+// 1. Crear un arreglo de 10 nombres de ciudades
+$ciudades = ["Nueva York", "Tokio", "Londres", "París", "Sídney", "Río de Janeiro", "Moscú", "Berlín", "Ciudad del Cabo", "Toronto"];
+
+// 2. Imprimir el arreglo original
+echo "Ciudades originales:\\n";
+print_r($ciudades);
+
+// 3. Agregar 2 ciudades más al final del arreglo
+array_push($ciudades, "Dubái", "Singapur");
+
+// 4. Eliminar la tercera ciudad del arreglo
+array_splice($ciudades, 2, 1);
+
+// 5. Insertar una nueva ciudad en la quinta posición
+array_splice($ciudades, 4, 0, "Mumbai");
+
+// 6. Imprimir el arreglo modificado
+echo "\\nCiudades modificadas:\\n";
+print_r($ciudades);
+
+// 7. Crear una función que imprima las ciudades en orden alfabético
+function imprimirCiudadesOrdenadas($arr) {
+    $ordenado = $arr;
+    sort($ordenado);
+    echo "Ciudades en orden alfabético:\\n";
+    foreach ($ordenado as $ciudad) {
+        echo "- $ciudad\\n";
+    }
+}
+
+// 8. Llamar a la función
+imprimirCiudadesOrdenadas($ciudades);
+
+// TAREA: Crea una función que cuente y retorne el número de ciudades que comienzan con una letra específica
+// Ejemplo de uso: contarCiudadesPorInicial($ciudades, 'S') debería retornar 1 (Singapur)
+// Tu código aquí
+
+?&gt;
+        </code></pre>
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso1.php</code>.</li>
+          <li>Abre la terminal en la carpeta raíz de tu repositorio.</li>
+          <li>Ejecuta los siguientes comandos:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso1.php
+git commit -m "Paso 1: Configuración inicial y manejo de arreglos simples"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    },
+    {
+      "title": "Paso 2: Arreglos Asociativos y Multidimensionales",
+      "content": `
+        <p>Crea un nuevo archivo <code>paso2.php</code> en la carpeta <code>TALLER_5</code> y desarrolla lo siguiente:</p>
+        <pre><code class="language-php">
+&lt;?php
+// 1. Crear un arreglo asociativo de productos con su inventario
+$inventario = [
+    "laptop" => ["cantidad" => 50, "precio" => 800],
+    "smartphone" => ["cantidad" => 100, "precio" => 500],
+    "tablet" => ["cantidad" => 30, "precio" => 300],
+    "smartwatch" => ["cantidad" => 25, "precio" => 150]
+];
+
+// 2. Función para mostrar el inventario
+function mostrarInventario($inv) {
+    foreach ($inv as $producto => $info) {
+        echo "$producto: {$info['cantidad']} unidades, Precio: \${$info['precio']}\\n";
+    }
+}
+
+// 3. Mostrar inventario inicial
+echo "Inventario inicial:\\n";
+mostrarInventario($inventario);
+
+// 4. Función para actualizar el inventario
+function actualizarInventario(&$inv, $producto, $cantidad, $precio = null) {
+    if (!isset($inv[$producto])) {
+        $inv[$producto] = ["cantidad" => $cantidad, "precio" => $precio];
+    } else {
+        $inv[$producto]["cantidad"] += $cantidad;
+        if ($precio !== null) {
+            $inv[$producto]["precio"] = $precio;
+        }
+    }
+}
+
+// 5. Actualizar inventario
+actualizarInventario($inventario, "laptop", -5);  // Venta de 5 laptops
+actualizarInventario($inventario, "smartphone", 50, 450);  // Nuevo lote de smartphones con precio actualizado
+actualizarInventario($inventario, "auriculares", 100, 50);  // Nuevo producto
+
+// 6. Mostrar inventario actualizado
+echo "\\nInventario actualizado:\\n";
+mostrarInventario($inventario);
+
+// 7. Función para calcular el valor total del inventario
+function valorTotalInventario($inv) {
+    $total = 0;
+    foreach ($inv as $producto => $info) {
+        $total += $info['cantidad'] * $info['precio'];
+    }
+    return $total;
+}
+
+// 8. Mostrar valor total del inventario
+echo "\\nValor total del inventario: \$" . valorTotalInventario($inventario) . "\\n";
+
+// TAREA: Crea una función que encuentre y retorne el producto con el mayor valor total en inventario
+// (cantidad * precio). Muestra el resultado.
+// Tu código aquí
+
+?&gt;
+        </code></pre>
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso2.php</code>.</li>
+          <li>Ejecuta los siguientes comandos en la terminal:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso2.php
+git commit -m "Paso 2: Arreglos asociativos y multidimensionales para manejo de inventario"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    },
+    {
+      "title": "Paso 3: Manipulación Avanzada de Arreglos",
+      "content": `
+        <p>Crea un archivo <code>paso3.php</code> en la carpeta <code>TALLER_5</code> con el siguiente contenido:</p>
+        <pre><code class="language-php">
+&lt;?php
+// 1. Crear un arreglo de estudiantes con sus calificaciones
+$estudiantes = [
+    ["nombre" => "Ana", "calificaciones" => [85, 92, 78, 96, 88]],
+    ["nombre" => "Juan", "calificaciones" => [75, 84, 91, 79, 86]],
+    ["nombre" => "María", "calificaciones" => [92, 95, 89, 97, 93]],
+    ["nombre" => "Pedro", "calificaciones" => [70, 72, 78, 75, 77]],
+    ["nombre" => "Laura", "calificaciones" => [88, 86, 90, 85, 89]]
+];
+
+// 2. Función para calcular el promedio de calificaciones
+function calcularPromedio($calificaciones) {
+    return array_sum($calificaciones) / count($calificaciones);
+}
+
+// 3. Función para asignar una letra de calificación basada en el promedio
+function asignarLetraCalificacion($promedio) {
+    if ($promedio >= 90) return 'A';
+    if ($promedio >= 80) return 'B';
+    if ($promedio >= 70) return 'C';
+    if ($promedio >= 60) return 'D';
+    return 'F';
+}
+
+// 4. Procesar y mostrar información de estudiantes
+echo "Información de estudiantes:\\n";
+foreach ($estudiantes as &$estudiante) {
+    $promedio = calcularPromedio($estudiante["calificaciones"]);
+    $estudiante["promedio"] = $promedio;
+    $estudiante["letra_calificacion"] = asignarLetraCalificacion($promedio);
+    
+    echo "{$estudiante['nombre']}:\\n";
+    echo "  Calificaciones: " . implode(", ", $estudiante["calificaciones"]) . "\\n";
+    echo "  Promedio: " . number_format($promedio, 2) . "\\n";
+    echo "  Calificación: {$estudiante['letra_calificacion']}\\n\\n";
+}
+
+// 5. Encontrar al estudiante con el promedio más alto
+$mejorEstudiante = array_reduce($estudiantes, function($mejor, $actual) {
+    return (!$mejor || $actual["promedio"] > $mejor["promedio"]) ? $actual : $mejor;
+});
+
+echo "Estudiante con el promedio más alto: {$mejorEstudiante['nombre']} ({$mejorEstudiante['promedio']})\\n";
+
+// 6. Calcular y mostrar el promedio general de la clase
+$promedioGeneral = array_sum(array_column($estudiantes, "promedio")) / count($estudiantes);
+echo "Promedio general de la clase: " . number_format($promedioGeneral, 2) . "\\n";
+
+// 7. Contar estudiantes por letra de calificación
+$conteoCalificaciones = array_count_values(array_column($estudiantes, "letra_calificacion"));
+echo "Distribución de calificaciones:\\n";
+foreach ($conteoCalificaciones as $letra => $cantidad) {
+    echo "$letra: $cantidad estudiante(s)\\n";
+}
+
+// TAREA: Implementa una función que identifique a los estudiantes que necesitan tutoría
+// (aquellos con un promedio menor a 75) y otra que liste a los estudiantes de honor
+// (aquellos con un promedio de 90 o más).
+// Tu código aquí
+
+?&gt;
+        </code></pre>
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso3.php</code>.</li>
+          <li>Ejecuta los siguientes comandos en la terminal:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso3.php
+git commit -m "Paso 3: Manipulación avanzada de arreglos con datos de estudiantes"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    },
+{
+      "title": "Paso 4: Ordenamiento y Filtrado Avanzado de Arreglos",
+      "content": `
+        <p>En este paso, trabajaremos con técnicas avanzadas de ordenamiento y filtrado de arreglos en PHP. Crearemos un sistema de gestión de una biblioteca que nos permitirá practicar estas operaciones con datos más complejos.</p>
+
+        <p>Crea un nuevo archivo llamado <code>paso4.php</code> en la carpeta <code>TALLER_5</code> y sigue estas instrucciones:</p>
+
+        <ol>
+          <li>Copia y pega el siguiente código en tu archivo <code>paso4.php</code>:</li>
+        </ol>
+
+        <pre><code class="language-php">
+&lt;?php
+// Paso 4: Ordenamiento y Filtrado Avanzado de Arreglos
+
+// 1. Definir el arreglo de libros
+$biblioteca = [
+    [
+        "titulo" => "Cien años de soledad",
+        "autor" => "Gabriel García Márquez",
+        "año" => 1967,
+        "genero" => "Realismo mágico",
+        "prestado" => true
+    ],
+    [
+        "titulo" => "1984",
+        "autor" => "George Orwell",
+        "año" => 1949,
+        "genero" => "Ciencia ficción",
+        "prestado" => false
+    ],
+    [
+        "titulo" => "El principito",
+        "autor" => "Antoine de Saint-Exupéry",
+        "año" => 1943,
+        "genero" => "Literatura infantil",
+        "prestado" => true
+    ],
+    [
+        "titulo" => "Don Quijote de la Mancha",
+        "autor" => "Miguel de Cervantes",
+        "año" => 1605,
+        "genero" => "Novela",
+        "prestado" => false
+    ],
+    [
+        "titulo" => "Orgullo y prejuicio",
+        "autor" => "Jane Austen",
+        "año" => 1813,
+        "genero" => "Novela romántica",
+        "prestado" => true
+    ]
+];
+
+// 2. Función para imprimir la biblioteca
+function imprimirBiblioteca($libros) {
+    foreach ($libros as $libro) {
+        echo "{$libro['titulo']} - {$libro['autor']} ({$libro['año']}) - {$libro['genero']} - " . 
+             ($libro['prestado'] ? "Prestado" : "Disponible") . "\\n";
+    }
+    echo "\\n";
+}
+
+echo "Biblioteca original:\\n";
+imprimirBiblioteca($biblioteca);
+
+// 3. Ordenar libros por año de publicación (del más antiguo al más reciente)
+usort($biblioteca, function($a, $b) {
+    return $a['año'] - $b['año'];
+});
+
+echo "Libros ordenados por año de publicación:\\n";
+imprimirBiblioteca($biblioteca);
+
+// 4. Ordenar libros alfabéticamente por título
+usort($biblioteca, function($a, $b) {
+    return strcmp($a['titulo'], $b['titulo']);
+});
+
+echo "Libros ordenados alfabéticamente por título:\\n";
+imprimirBiblioteca($biblioteca);
+
+// 5. Filtrar libros disponibles (no prestados)
+$librosDisponibles = array_filter($biblioteca, function($libro) {
+    return !$libro['prestado'];
+});
+
+echo "Libros disponibles:\\n";
+imprimirBiblioteca($librosDisponibles);
+
+// 6. Filtrar libros por género
+function filtrarPorGenero($libros, $genero) {
+    return array_filter($libros, function($libro) use ($genero) {
+        return strcasecmp($libro['genero'], $genero) === 0;
+    });
+}
+
+$librosCienciaFiccion = filtrarPorGenero($biblioteca, "Ciencia ficción");
+echo "Libros de Ciencia ficción:\\n";
+imprimirBiblioteca($librosCienciaFiccion);
+
+// 7. Obtener lista de autores únicos
+$autores = array_unique(array_column($biblioteca, 'autor'));
+sort($autores);
+
+echo "Lista de autores:\\n";
+foreach ($autores as $autor) {
+    echo "- $autor\\n";
+}
+echo "\\n";
+
+// 8. Calcular el año promedio de publicación
+$añoPromedio = array_sum(array_column($biblioteca, 'año')) / count($biblioteca);
+echo "Año promedio de publicación: " . round($añoPromedio, 2) . "\\n\\n";
+
+// 9. Encontrar el libro más antiguo y el más reciente
+$libroMasAntiguo = array_reduce($biblioteca, function($carry, $libro) {
+    return (!$carry || $libro['año'] < $carry['año']) ? $libro : $carry;
+});
+
+$libroMasReciente = array_reduce($biblioteca, function($carry, $libro) {
+    return (!$carry || $libro['año'] > $carry['año']) ? $libro : $carry;
+});
+
+echo "Libro más antiguo: {$libroMasAntiguo['titulo']} ({$libroMasAntiguo['año']})\\n";
+echo "Libro más reciente: {$libroMasReciente['titulo']} ({$libroMasReciente['año']})\\n\\n";
+
+// 10. TAREA: Implementa una función de búsqueda que permita buscar libros por título o autor
+// La función debe ser capaz de manejar búsquedas parciales y no debe ser sensible a mayúsculas/minúsculas
+function buscarLibros($biblioteca, $termino) {
+    // Tu código aquí
+}
+
+// Ejemplo de uso de la función de búsqueda (descomenta para probar)
+// $resultadosBusqueda = buscarLibros($biblioteca, "quijote");
+// echo "Resultados de búsqueda para 'quijote':\\n";
+// imprimirBiblioteca($resultadosBusqueda);
+
+// 11. TAREA: Crea una función que genere un reporte de la biblioteca
+// El reporte debe incluir: número total de libros, número de libros prestados,
+// número de libros por género, y el autor con más libros en la biblioteca
+function generarReporteBiblioteca($biblioteca) {
+    // Tu código aquí
+}
+
+// Ejemplo de uso de la función de reporte (descomenta para probar)
+// echo "Reporte de la Biblioteca:\\n";
+// print_r(generarReporteBiblioteca($biblioteca));
+
+?&gt;
+        </code></pre>
+
+        <ol start="2">
+          <li>Estudia el código y asegúrate de entender cada parte. Presta especial atención a las funciones de ordenamiento (<code>usort</code>) y filtrado (<code>array_filter</code>).</li>
+          <li>Ejecuta el script y observa los resultados de cada operación de ordenamiento y filtrado.</li>
+          <li>Completa las tareas 10 y 11:
+            <ul>
+              <li>Implementa la función <code>buscarLibros</code> que permita buscar libros por título o autor, manejando búsquedas parciales e insensibles a mayúsculas/minúsculas.</li>
+              <li>Crea la función <code>generarReporteBiblioteca</code> que genere un reporte detallado de la biblioteca.</li>
+            </ul>
+          </li>
+          <li>Prueba tus implementaciones descomentando los ejemplos de uso al final del script.</li>
+          <li>Experimenta modificando el arreglo <code>$biblioteca</code> y observa cómo afecta a los resultados de las diferentes operaciones.</li>
+        </ol>
+
+        <p>Este ejercicio te permitirá practicar:
+          <ul>
+            <li>Ordenamiento personalizado de arreglos usando <code>usort</code></li>
+            <li>Filtrado de arreglos con <code>array_filter</code></li>
+            <li>Uso de funciones de orden superior como <code>array_reduce</code> y <code>array_column</code></li>
+            <li>Manipulación avanzada de arreglos asociativos</li>
+            <li>Creación de funciones de búsqueda y generación de reportes</li>
+          </ul>
+        </p>
+
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso4.php</code>.</li>
+          <li>Ejecuta los siguientes comandos en la terminal:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso4.php
+git commit -m "Paso 4: Ordenamiento y filtrado avanzado de arreglos"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    } 
+	,
+    {
+      "title": "Paso 5: Manipulación de Datos JSON con Arreglos",
+      "content": `
+        <p>Crea un nuevo archivo <code>paso5.php</code> en la carpeta <code>TALLER_5</code>. En este paso, trabajaremos con datos JSON y su conversión a arreglos PHP:</p>
+        <pre><code class="language-php">
+&lt;?php
+// 1. Crear un string JSON con datos de una tienda en línea
+$jsonDatos = '
+{
+    "tienda": "ElectroTech",
+    "productos": [
+        {"id": 1, "nombre": "Laptop Gamer", "precio": 1200, "categorias": ["electrónica", "computadoras"]},
+        {"id": 2, "nombre": "Smartphone 5G", "precio": 800, "categorias": ["electrónica", "celulares"]},
+        {"id": 3, "nombre": "Auriculares Bluetooth", "precio": 150, "categorias": ["electrónica", "accesorios"]},
+        {"id": 4, "nombre": "Smart TV 4K", "precio": 700, "categorias": ["electrónica", "televisores"]},
+        {"id": 5, "nombre": "Tablet", "precio": 300, "categorias": ["electrónica", "computadoras"]}
+    ],
+    "clientes": [
+        {"id": 101, "nombre": "Ana López", "email": "ana@example.com"},
+        {"id": 102, "nombre": "Carlos Gómez", "email": "carlos@example.com"},
+        {"id": 103, "nombre": "María Rodríguez", "email": "maria@example.com"}
+    ]
+}
+';
+
+// 2. Convertir el JSON a un arreglo asociativo de PHP
+$tiendaData = json_decode($jsonDatos, true);
+
+// 3. Función para imprimir los productos
+function imprimirProductos($productos) {
+    foreach ($productos as $producto) {
+        echo "{$producto['nombre']} - \${$producto['precio']} - Categorías: " . implode(", ", $producto['categorias']) . "\\n";
+    }
+}
+
+echo "Productos de {$tiendaData['tienda']}:\\n";
+imprimirProductos($tiendaData['productos']);
+
+// 4. Calcular el valor total del inventario
+$valorTotal = array_reduce($tiendaData['productos'], function($total, $producto) {
+    return $total + $producto['precio'];
+}, 0);
+
+echo "\\nValor total del inventario: \$$valorTotal\\n";
+
+// 5. Encontrar el producto más caro
+$productoMasCaro = array_reduce($tiendaData['productos'], function($max, $producto) {
+    return ($producto['precio'] > $max['precio']) ? $producto : $max;
+}, $tiendaData['productos'][0]);
+
+echo "\\nProducto más caro: {$productoMasCaro['nombre']} (\${$productoMasCaro['precio']})\\n";
+
+// 6. Filtrar productos por categoría
+function filtrarPorCategoria($productos, $categoria) {
+    return array_filter($productos, function($producto) use ($categoria) {
+        return in_array($categoria, $producto['categorias']);
+    });
+}
+
+$productosDe
+
+Computadoras = filtrarPorCategoria($tiendaData['productos'], "computadoras");
+echo "\\nProductos en la categoría 'computadoras':\\n";
+imprimirProductos($productosDeComputadoras);
+
+// 7. Agregar un nuevo producto
+$nuevoProducto = [
+    "id" => 6,
+    "nombre" => "Smartwatch",
+    "precio" => 250,
+    "categorias" => ["electrónica", "accesorios", "wearables"]
+];
+$tiendaData['productos'][] = $nuevoProducto;
+
+// 8. Convertir el arreglo actualizado de vuelta a JSON
+$jsonActualizado = json_encode($tiendaData, JSON_PRETTY_PRINT);
+echo "\\nDatos actualizados de la tienda (JSON):\\n$jsonActualizado\\n";
+
+// TAREA: Implementa una función que genere un resumen de ventas
+// Crea un arreglo de ventas (producto_id, cliente_id, cantidad, fecha)
+// y genera un informe que muestre:
+// - Total de ventas
+// - Producto más vendido
+// - Cliente que más ha comprado
+// Tu código aquí
+
+?&gt;
+        </code></pre>
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso5.php</code>.</li>
+          <li>Ejecuta los siguientes comandos en la terminal:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso5.php
+git commit -m "Paso 5: Manipulación de datos JSON y arreglos complejos"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    },
+    {
+      "title": "Paso 6: Arreglos Multidimensionales y Análisis de Datos",
+      "content": `
+        <p>Crea un nuevo archivo <code>paso6.php</code> en la carpeta <code>TALLER_5</code>. En este paso, trabajaremos con arreglos multidimensionales para analizar datos de ventas:</p>
+        <pre><code class="language-php">
+&lt;?php
+// 1. Crear un arreglo multidimensional de ventas por región y producto
+$ventas = [
+    "Norte" => [
+        "Producto A" => [100, 120, 140, 110, 130],
+        "Producto B" => [85, 95, 105, 90, 100],
+        "Producto C" => [60, 55, 65, 70, 75]
+    ],
+    "Sur" => [
+        "Producto A" => [80, 90, 100, 85, 95],
+        "Producto B" => [120, 110, 115, 125, 130],
+        "Producto C" => [70, 75, 80, 65, 60]
+    ],
+    "Este" => [
+        "Producto A" => [110, 115, 120, 105, 125],
+        "Producto B" => [95, 100, 90, 105, 110],
+        "Producto C" => [50, 60, 55, 65, 70]
+    ],
+    "Oeste" => [
+        "Producto A" => [90, 85, 95, 100, 105],
+        "Producto B" => [105, 110, 100, 115, 120],
+        "Producto C" => [80, 85, 75, 70, 90]
+    ]
+];
+
+// 2. Función para calcular el promedio de ventas
+function promedioVentas($ventas) {
+    return array_sum($ventas) / count($ventas);
+}
+
+// 3. Calcular y mostrar el promedio de ventas por región y producto
+echo "Promedio de ventas por región y producto:\\n";
+foreach ($ventas as $region => $productos) {
+    echo "$region:\\n";
+    foreach ($productos as $producto => $ventasProducto) {
+        $promedio = promedioVentas($ventasProducto);
+        echo "  $producto: " . number_format($promedio, 2) . "\\n";
+    }
+    echo "\\n";
+}
+
+// 4. Función para encontrar el producto más vendido en una región
+function productoMasVendido($productos) {
+    $maxVentas = 0;
+    $productoTop = '';
+    foreach ($productos as $producto => $ventas) {
+        $totalVentas = array_sum($ventas);
+        if ($totalVentas > $maxVentas) {
+            $maxVentas = $totalVentas;
+            $productoTop = $producto;
+        }
+    }
+    return [$productoTop, $maxVentas];
+}
+
+// 5. Encontrar y mostrar el producto más vendido por región
+echo "Producto más vendido por región:\\n";
+foreach ($ventas as $region => $productos) {
+    [$productoTop, $ventasTop] = productoMasVendido($productos);
+    echo "$region: $productoTop (Total: $ventasTop)\\n";
+}
+
+// 6. Calcular las ventas totales por producto
+$ventasTotalesPorProducto = [];
+foreach ($ventas as $region => $productos) {
+    foreach ($productos as $producto => $ventasProducto) {
+        if (!isset($ventasTotalesPorProducto[$producto])) {
+            $ventasTotalesPorProducto[$producto] = 0;
+        }
+        $ventasTotalesPorProducto[$producto] += array_sum($ventasProducto);
+    }
+}
+
+echo "\\nVentas totales por producto:\\n";
+arsort($ventasTotalesPorProducto);
+foreach ($ventasTotalesPorProducto as $producto => $total) {
+    echo "$producto: $total\\n";
+}
+
+// 7. Encontrar la región con mayores ventas totales
+$ventasTotalesPorRegion = array_map(function($productos) {
+    return array_sum(array_map('array_sum', $productos));
+}, $ventas);
+
+$regionTopVentas = array_keys($ventasTotalesPorRegion, max($ventasTotalesPorRegion))[0];
+echo "\\nRegión con mayores ventas totales: $regionTopVentas\\n";
+
+// TAREA: Implementa una función que analice el crecimiento de ventas
+// Calcula y muestra el porcentaje de crecimiento de ventas del primer al último mes
+// para cada producto en cada región. Identifica el producto y la región con mayor crecimiento.
+// Tu código aquí
+
+?&gt;
+        </code></pre>
+        <p>Después de completar este paso:</p>
+        <ol>
+          <li>Guarda los cambios en <code>paso6.php</code>.</li>
+          <li>Ejecuta los siguientes comandos en la terminal:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/paso6.php
+git commit -m "Paso 6: Análisis de datos con arreglos multidimensionales"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+      `
+    },
+{
+      "title": "Paso 7: Proyecto Final - Sistema de Gestión de Estudiantes",
+      "content": `
+        <h3>Proyecto Final: Sistema de Gestión de Estudiantes</h3>
+
+        <p>En este proyecto final, aplicarás todo lo que has aprendido sobre arreglos en PHP para crear un Sistema de Gestión de Estudiantes completo. Este sistema te permitirá practicar la manipulación avanzada de arreglos, programación orientada a objetos, y la implementación de funcionalidades complejas.</p>
+
+        <h4>Objetivos del Proyecto:</h4>
+        <ul>
+          <li>Crear un sistema funcional para gestionar información de estudiantes.</li>
+          <li>Aplicar conceptos avanzados de arreglos en PHP.</li>
+          <li>Practicar la programación orientada a objetos.</li>
+          <li>Implementar funcionalidades de búsqueda, filtrado y generación de reportes.</li>
+        </ul>
+
+        <h4>Requisitos del Sistema:</h4>
+
+        <ol>
+          <li><strong>Clase Estudiante:</strong>
+            <ul>
+              <li>Atributos: id, nombre, edad, carrera, y un arreglo de materias con sus respectivas calificaciones.</li>
+              <li>Métodos:
+                <ul>
+                  <li>Constructor que inicialice todos los atributos.</li>
+                  <li><code>agregarMateria($materia, $calificacion)</code>: para añadir una materia y su calificación.</li>
+                  <li><code>obtenerPromedio()</code>: que calcule y retorne el promedio de calificaciones.</li>
+                  <li><code>obtenerDetalles()</code>: que retorne un arreglo asociativo con toda la información del estudiante.</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+
+          <li><strong>Clase SistemaGestionEstudiantes:</strong>
+            <ul>
+              <li>Atributos: un arreglo para almacenar los objetos Estudiante.</li>
+              <li>Métodos:
+                <ul>
+                  <li><code>agregarEstudiante($estudiante)</code>: para añadir un nuevo estudiante al sistema.</li>
+                  <li><code>obtenerEstudiante($id)</code>: para obtener un estudiante por su ID.</li>
+                  <li><code>listarEstudiantes()</code>: que retorne un arreglo con todos los estudiantes.</li>
+                  <li><code>calcularPromedioGeneral()</code>: que calcule el promedio de todos los estudiantes.</li>
+                  <li><code>obtenerEstudiantesPorCarrera($carrera)</code>: que retorne un arreglo de estudiantes de una carrera específica.</li>
+                  <li><code>obtenerMejorEstudiante()</code>: que retorne el estudiante con el promedio más alto.</li>
+                  <li><code>generarReporteRendimiento()</code>: que genere un reporte mostrando para cada materia el promedio, la calificación más alta y la más baja.</li>
+                  <li><code>graduarEstudiante($id)</code>: que "gradúe" a un estudiante, eliminándolo del sistema y guardándolo en un nuevo arreglo de "graduados".</li>
+                  <li><code>generarRanking()</code>: que ordene a los estudiantes por su promedio y retorne el ranking.</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ol>
+
+        <h4>Funcionalidades Adicionales:</h4>
+        <ul>
+          <li>Implementa un método de búsqueda que permita encontrar estudiantes por nombre o carrera, manejando búsquedas parciales e insensibles a mayúsculas/minúsculas.</li>
+          <li>Crea una función que genere estadísticas por carrera, incluyendo número de estudiantes, promedio general, y mejor estudiante de cada carrera.</li>
+          <li>Implementa un sistema de "flags" para los estudiantes (por ejemplo, "en riesgo académico", "honor roll", etc.) basado en sus promedios o materias reprobadas.</li>
+        </ul>
+
+        <h4>Requerimientos Técnicos:</h4>
+        <ul>
+          <li>Utiliza arreglos asociativos y multidimensionales donde sea apropiado.</li>
+          <li>Implementa al menos tres funciones de orden superior (como array_map, array_reduce, o array_filter) en tu solución.</li>
+          <li>Asegúrate de manejar posibles errores, como buscar un estudiante que no existe.</li>
+          <li>Utiliza type hinting en los métodos de las clases para mejorar la robustez del código.</li>
+          <li>Implementa un método __toString() en la clase Estudiante para facilitar la impresión de información.</li>
+        </ul>
+
+        <h4>Instrucciones de Implementación:</h4>
+        <ol>
+          <li>Crea un nuevo archivo llamado <code>proyecto_final.php</code> en la carpeta <code>TALLER_5</code>.</li>
+          <li>Implementa las clases Estudiante y SistemaGestionEstudiantes con todos los métodos requeridos.</li>
+          <li>Crea una sección de prueba en tu script donde:
+            <ul>
+              <li>Instancies el SistemaGestionEstudiantes.</li>
+              <li>Crees al menos 10 estudiantes con diferentes carreras, edades y calificaciones.</li>
+              <li>Demuestres el uso de todas las funcionalidades implementadas.</li>
+              <li>Muestres los resultados de manera clara y organizada.</li>
+            </ul>
+          </li>
+          <li>Comenta tu código adecuadamente, explicando la lógica detrás de las implementaciones más complejas.</li>
+          <li>Asegúrate de que tu código siga las mejores prácticas de PHP y sea fácil de leer y mantener.</li>
+        </ol>
+
+        <h4>Retos Adicionales (Opcionales):</h4>
+        <ul>
+          <li>Implementa un sistema de persistencia simple que guarde y cargue los datos de los estudiantes en un archivo JSON.</li>
+          <li>Crea una interfaz de línea de comandos simple que permita interactuar con el sistema (agregar estudiantes, buscar, generar reportes, etc.).</li>
+          <li>Implementa un sistema de validación de datos para asegurar que la información ingresada sea correcta (por ejemplo, calificaciones entre 0 y 100, edades válidas, etc.).</li>
+        </ul>
+
+        <h4>Entrega:</h4>
+        <p>Una vez que hayas completado el proyecto:</p>
+        <ol>
+          <li>Asegúrate de que tu código esté bien comentado y organizado.</li>
+          <li>Crea un archivo README.md en la carpeta TALLER_5 explicando brevemente cómo usar tu sistema y las funcionalidades implementadas.</li>
+          <li>Realiza un commit final con todos tus cambios:
+            <pre><code class="language-bash">
+git add TALLERES/TALLER_5/proyecto_final.php TALLERES/TALLER_5/README.md
+git commit -m "Proyecto Final: Sistema de Gestión de Estudiantes completado"
+git push origin main
+            </code></pre>
+          </li>
+        </ol>
+
+        <p>Este proyecto final te permitirá aplicar y demostrar todo lo que has aprendido sobre el manejo avanzado de arreglos en PHP, así como practicar habilidades importantes de programación orientada a objetos y diseño de sistemas.</p>
+
+        <p>¡Buena suerte con tu implementación!</p>
+      `
+    }
+  ]
+}];
+	  
+	  
+      let currentTutorial = 0;
+      let currentStep = 0;
+
+      function updateStep() {
+        const tutorial = tutorials[currentTutorial];
+        const step = tutorial.steps[currentStep];
+        const stepContent = document.getElementById('stepContent');
+        const mainTitle = document.getElementById('mainTitle');
+        const nextBtn = document.getElementById('nextBtn');
+        const nextTutorialBtn = document.getElementById('nextTutorialBtn');
+        mainTitle.textContent = tutorial.title;
+        stepContent.innerHTML = `
+                
+						<h2>${step.title}</h2>
+						<p>${step.content}</p>
+            `;
+        document.getElementById('prevBtn').disabled = currentStep === 0;
+        nextBtn.disabled = currentStep === tutorial.steps.length - 1;
+        // Show or hide the "Next Tutorial" button
+        if (currentStep === tutorial.steps.length - 1 && currentTutorial < tutorials.length - 1) {
+          nextTutorialBtn.style.display = 'inline-block';
+          nextBtn.style.display = 'none';
+        } else {
+          nextTutorialBtn.style.display = 'none';
+          nextBtn.style.display = 'inline-block';
+        }
+        document.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightElement(block);
+        });
+        updateSidebarActiveState();
+      }
+
+      function navigate(direction) {
+        currentStep += direction;
+        updateStep();
+      }
+
+      function navigateToNextTutorial() {
+        if (currentTutorial < tutorials.length - 1) {
+          currentTutorial++;
+          currentStep = 0;
+          updateStep();
+        }
+      }
+
+      function copyCode(button) {
+        const pre = button.parentElement;
+        const code = pre.querySelector('code');
+        const range = document.createRange();
+        range.selectNode(code);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+          button.textContent = 'Copy';
+        }, 2000);
+      }
+
+      function createSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        tutorials.forEach((tutorial, tutorialIndex) => {
+          const tutorialTitle = document.createElement('div');
+          tutorialTitle.className = 'tutorial-title';
+          tutorialTitle.textContent = tutorial.title;
+          tutorialTitle.onclick = () => toggleTutorialSteps(tutorialIndex);
+          const tutorialSteps = document.createElement('div');
+          tutorialSteps.className = 'tutorial-steps';
+          tutorial.steps.forEach((step, stepIndex) => {
+            const stepElement = document.createElement('div');
+            stepElement.className = 'tutorial-step';
+            stepElement.textContent = step.title;
+            stepElement.onclick = () => loadStep(tutorialIndex, stepIndex);
+            tutorialSteps.appendChild(stepElement);
+          });
+          sidebar.appendChild(tutorialTitle);
+          sidebar.appendChild(tutorialSteps);
+        });
+      }
+
+      function toggleTutorialSteps(tutorialIndex) {
+        const tutorialSteps = document.getElementsByClassName('tutorial-steps')[tutorialIndex];
+        tutorialSteps.style.display = tutorialSteps.style.display === 'none' ? 'block' : 'none';
+      }
+
+      function loadStep(tutorialIndex, stepIndex) {
+        currentTutorial = tutorialIndex;
+        currentStep = stepIndex;
+        updateStep();
+      }
+
+      function updateSidebarActiveState() {
+        const tutorialTitles = document.getElementsByClassName('tutorial-title');
+        const tutorialSteps = document.getElementsByClassName('tutorial-steps');
+        for (let i = 0; i < tutorialTitles.length; i++) {
+          tutorialTitles[i].classList.remove('active');
+          tutorialSteps[i].style.display = 'none';
+          const stepElements = tutorialSteps[i].children;
+          for (let j = 0; j < stepElements.length; j++) {
+            stepElements[j].classList.remove('active');
+          }
+          if (i === currentTutorial) {
+            tutorialTitles[i].classList.add('active');
+            tutorialSteps[i].style.display = 'block';
+            stepElements[currentStep].classList.add('active');
+          }
+        }
+      }
+
+      function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+      }
+      createSidebar();
+      hljs.highlightAll();
+      updateStep();
+    </script>
+  </body>
+</html>
