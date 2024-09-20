@@ -24,7 +24,7 @@ $tiendaData = json_decode($jsonDatos, true);
 // 3. Función para imprimir los productos
 function imprimirProductos($productos) {
     foreach ($productos as $producto) {
-        echo "{$producto['nombre']} - ${$producto['precio']} - Categorías: " . implode(", ", $producto['categorias']) . "\n";
+        echo "{$producto['nombre']} - $ {$producto['precio']} - Categorías: " . implode(", ", $producto['categorias']) . "\n";
     }
 }
 
@@ -36,14 +36,14 @@ $valorTotal = array_reduce($tiendaData['productos'], function($total, $producto)
     return $total + $producto['precio'];
 }, 0);
 
-echo "\nValor total del inventario: $$valorTotal\n";
+echo "<br>Valor total del inventario: $$valorTotal\n";
 
 // 5. Encontrar el producto más caro
 $productoMasCaro = array_reduce($tiendaData['productos'], function($max, $producto) {
     return ($producto['precio'] > $max['precio']) ? $producto : $max;
 }, $tiendaData['productos'][0]);
 
-echo "\nProducto más caro: {$productoMasCaro['nombre']} (${$productoMasCaro['precio']})\n";
+echo "<br>Producto más caro: {$productoMasCaro['nombre']} ($ {$productoMasCaro['precio']})<br>";
 
 // 6. Filtrar productos por categoría
 function filtrarPorCategoria($productos, $categoria) {
@@ -52,10 +52,8 @@ function filtrarPorCategoria($productos, $categoria) {
     });
 }
 
-$productosDe
-
-Computadoras = filtrarPorCategoria($tiendaData['productos'], "computadoras");
-echo "\nProductos en la categoría 'computadoras':\n";
+$productosDeComputadoras = filtrarPorCategoria($tiendaData['productos'], "computadoras");
+echo "\nProductos en la categoría 'computadoras':<br>";
 imprimirProductos($productosDeComputadoras);
 
 // 7. Agregar un nuevo producto
@@ -69,7 +67,7 @@ $tiendaData['productos'][] = $nuevoProducto;
 
 // 8. Convertir el arreglo actualizado de vuelta a JSON
 $jsonActualizado = json_encode($tiendaData, JSON_PRETTY_PRINT);
-echo "\nDatos actualizados de la tienda (JSON):\n$jsonActualizado\n";
+echo "<br>Datos actualizados de la tienda (JSON):<br>$jsonActualizado<br>";
 
 // TAREA: Implementa una función que genere un resumen de ventas
 // Crea un arreglo de ventas (producto_id, cliente_id, cantidad, fecha)

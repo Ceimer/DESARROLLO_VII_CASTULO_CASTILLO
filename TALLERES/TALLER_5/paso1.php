@@ -4,7 +4,7 @@
 $ciudades = ["Nueva York", "Tokio", "Londres", "París", "Sídney", "Río de Janeiro", "Moscú", "Berlín", "Ciudad del Cabo", "Toronto"];
 
 // 2. Imprimir el arreglo original
-echo "Ciudades originales:\n";
+echo "Ciudades originales:<br>";
 print_r($ciudades);
 
 // 3. Agregar 2 ciudades más al final del arreglo
@@ -17,16 +17,16 @@ array_splice($ciudades, 2, 1);
 array_splice($ciudades, 4, 0, "Mumbai");
 
 // 6. Imprimir el arreglo modificado
-echo "\nCiudades modificadas:\n";
+echo "<br>Ciudades modificadas:<br>";
 print_r($ciudades);
 
 // 7. Crear una función que imprima las ciudades en orden alfabético
 function imprimirCiudadesOrdenadas($arr) {
     $ordenado = $arr;
     sort($ordenado);
-    echo "Ciudades en orden alfabético:\n";
+    echo "Ciudades en orden alfabético:<br>";
     foreach ($ordenado as $ciudad) {
-        echo "- $ciudad\n";
+        echo "- $ciudad<br>";
     }
 }
 
