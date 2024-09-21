@@ -34,7 +34,24 @@ function imprimirCiudadesOrdenadas($arr) {
 imprimirCiudadesOrdenadas($ciudades);
 
 // TAREA: Crea una función que cuente y retorne el número de ciudades que comienzan con una letra específica
-// Ejemplo de uso: contarCiudadesPorInicial($ciudades, 'S') debería retornar 1 (Singapur)
-// Tu código aquí
+function contarCiudadesPorInicial($arr, $letra) {
+    $contador = 0;
+    foreach ($arr as $ciudad) {
+        if (stripos($ciudad, $letra) === 0) {
+            $contador++;
+        }
+    }
+    return $contador;
+}
+
+// Ejemplo de uso de la función contarCiudadesPorInicial
+$letraBuscada = 'S';
+$numCiudades = contarCiudadesPorInicial($ciudades, $letraBuscada);
+echo "<br>Número de ciudades que comienzan con la letra '$letraBuscada': $numCiudades<br>";
+
+// Otro ejemplo de uso de la función con la letra 'T'
+$letraBuscada2 = 'T';
+$numCiudades2 = contarCiudadesPorInicial($ciudades, $letraBuscada2);
+echo "Número de ciudades que comienzan con la letra '$letraBuscada2': $numCiudades2<br>";
 
 ?>

@@ -90,6 +90,41 @@ echo "\nRegión con mayores ventas totales: $regionTopVentas\n";
 // Calcula y muestra el porcentaje de crecimiento de ventas del primer al último mes
 // para cada producto en cada región. Identifica el producto y la región con mayor crecimiento.
 // Tu código aquí
+function calcularCrecimientoVentas($ventasInicial, $ventasFinal) {
+    if ($ventasInicial == 0) {
+        return $ventasFinal > 0 ? 100 : 0; // Si el valor inicial es 0 y final es mayor, asumimos un 100% de crecimiento
+    }
+    return (($ventasFinal - $ventasInicial) / $ventasInicial) * 100;
+}
+
+function analizarCrecimientoVentas($ventas) {
+    $mayorCrecimiento = ["region" => "", "producto" => "", "crecimiento" => -PHP_INT_MAX];
+    echo "\nCrecimiento de ventas (del primer al último mes):\n";
+
+    foreach ($ventas as $region => $productos) {
+        echo "$region:\n";
+        foreach ($productos as $producto => $ventasProducto) {
+            $crecimiento = calcularCrecimientoVentas($ventasProducto[0], $ventasProducto[count($ventasProducto) - 1]);
+            echo "  $producto: " . number_format($crecimiento, 2) . "%\n";
+
+            if ($crecimiento > $mayorCrecimiento["crecimiento"]) {
+                $mayorCrecimiento = [
+                    "region" => $region,
+                    "producto" => $producto,
+                    "crecimiento" => $crecimiento
+                ];
+            }
+        }
+        echo "\n";
+    }
+
+    return $mayorCrecimiento;
+}
+
+$mayorCrecimiento = analizarCrecimientoVentas($ventas);
+
+echo "Producto con mayor crecimiento:\n";
+echo "{$mayorCrecimiento['producto']} en la región {$mayorCrecimiento['region']} con un crecimiento de " . number_format($mayorCrecimiento['crecimiento'], 2) . "%\n";
 
 ?>
 

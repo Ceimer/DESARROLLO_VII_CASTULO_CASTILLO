@@ -76,7 +76,34 @@ echo "<br>Datos actualizados de la tienda (JSON):<br>$jsonActualizado<br>";
 // - Producto más vendido
 // - Cliente que más ha comprado
 // Tu código aquí
+function clasificarEstudiantes($estudiantes) {
+    $tutoria = [];
+    $honor = [];
 
+    foreach ($estudiantes as $estudiante) {
+        if ($estudiante["promedio"] < 75) {
+            $tutoria[] = $estudiante["nombre"];
+        } elseif ($estudiante["promedio"] >= 90) {
+            $honor[] = $estudiante["nombre"];
+        }
+    }
+
+    return ["tutoria" => $tutoria, "honor" => $honor];
+}
+
+$resultados = clasificarEstudiantes($estudiantes);
+
+if (count($resultados["tutoria"]) > 0) {
+    echo "<br>Estudiantes que necesitan tutoría:<br>" . implode(", ", $resultados["tutoria"]) . "<br>";
+} else {
+    echo "<br>No hay estudiantes que necesiten tutoría.<br>";
+}
+
+if (count($resultados["honor"]) > 0) {
+    echo "<br>Estudiantes de honor:<br>" . implode(", ", $resultados["honor"]) . "<br>";
+} else {
+    echo "<br>No hay estudiantes de honor.<br>";
+}
 ?>
         
 
