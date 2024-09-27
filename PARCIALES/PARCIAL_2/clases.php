@@ -26,36 +26,43 @@ abstract class RecursoBiblioteca implements Prestable {
 }
 
 // Implementar las clases Libro, Revista y DVD aquí
-class libro extends RecursosBiblioteca implements Prestable {
-    public $isbn;
-    public function obtenerDetallesPrestamo(): string;{
-        return "Numero isbn: " . $this->isbn;
+class Libro extends RecursoBiblioteca implements Prestable {
+    private $isbn;
+
+    public function __construct($id, $titulo, $autor, $anio, $estado, $isbn) {
+        parent::__construct($id, $titulo, $autor, $anio, $estado);
+        $this->isbn = $isbn;
     }
-    
+
+    public function obtenerDetallesPrestamo(): string {
+        return "Libro ISBN: {$this->isbn}";
+    }
 }
 
-class Revista extends RecursosBiblioteca implements Prestable {
-    public $numeroEdicion;
+class Revista extends RecursoBiblioteca implements Prestable {
+    private $numeroEdicion;
 
-    public function __construct($datos) {
-        parent::__construct($datos);
-        $this->numeroEdicion = $datos["numeroEdicion"]?? null;
+    public function __construct($id, $titulo, $autor, $anio, $estado, $numeroEdicion) {
+        parent::__construct($id, $titulo, $autor, $anio, $estado);
+        $this->numeroEdicion = $numeroEdicion;
     }
-  
 
-    public function obtenerDetallesPrestamo(): string;{
-        return "Numero de Edicion: " . $this->numeroEdicion;
+    public function obtenerDetallesPrestamo(): string {
+        return "Revista N° Edición: {$this->numeroEdicion}";
     }
-    
 }
 
-class DVD extends RecursosBiblioteca implements Prestable {
-public $duracion;
-    public function obtenerDetallesPrestamo(): string;{
-        return "Duracion en minutos: " . $this->duracion;
+class DVD extends RecursoBiblioteca implements Prestable {
+    private $duracion;
+
+    public function __construct($id, $titulo, $autor, $anio, $estado, $duracion) {
+        parent::__construct($id, $titulo, $autor, $anio, $estado);
+        $this->duracion = $duracion;
     }
 
-    
+    public function obtenerDetallesPrestamo(): string {
+        return "DVD Duración: {$this->duracion} minutos";
+    }
 }
 
 class GestorBiblioteca {
@@ -111,10 +118,10 @@ class GestorBiblioteca {
         }
     }
 
-    public function buscarRecursosPorEstado($estado){
-        return array_filter($this->recursos,function(recursos)use($estado)){
+    public function buscarRecursosPorEstado($estado) {
+        return array_filter($this->recursos, function ($recurso) use ($estado) {
             return $recurso->estado === $estado;
-        };
+        });
     }
 
     public function listarRecursos($filtroEstado = '', $campoOrden = 'id', $direccionOrden = 'ASC') {
