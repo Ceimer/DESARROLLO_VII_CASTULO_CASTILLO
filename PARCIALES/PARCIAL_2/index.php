@@ -1,262 +1,215 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once 'clases.php';
 
-// Obtener la acción del query string, 'list' por defecto
-$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+$gestorBlog = new GestorBlog();
+$gestorBlog->cargarEntradas();
 
-// Variables para ordenamiento y filtrado
-$sortField = isset($_GET['field']) ? $_GET['field'] : 'id';
-$sortDirection = isset($_GET['direction']) ? $_GET['direction'] : 'ASC';
-$filterEstado = isset($_GET['filterEstado']) ? $_GET['filterEstado'] : '';
+$action = $_GET['action'] ?? 'list';
+$mensaje = '';
 
-$gestorBiblioteca = new GestorBiblioteca();
-$recursos = $gestorBiblioteca->cargarRecursos();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tipoEntrada = $_POST['tipoEntrada'] ?? 'una';
 
-// Variable para almacenar el recurso en edición
-$recursoEnEdicion = null;
+    $id = $_POST['id'] ?? uniqid();
+    $fecha_creacion = $_POST['fecha_creacion'] ?? date('Y-m-d H:i:s');
+    $titulo1 = $_POST['titulo1'] ?? '';
+    $descripcion1 = $_POST['descripcion1'] ?? '';
+    $titulo2 = $_POST['titulo2'] ?? '';
+    $descripcion2 = $_POST['descripcion2'] ?? '';
+    $titulo3 = $_POST['titulo3'] ?? '';
+    $descripcion3 = $_POST['descripcion3'] ?? '';
 
-// Procesar la acción
-switch ($action) {
-    case 'add':
-        if (isset($_GET['titulo']) && isset($_GET['autor']) && isset($_GET['anioPublicacion']) && isset($_GET['estado']) && isset($_GET['fechaAdquisicion']) && isset($_GET['tipo'])) {
-            $titulo = $_GET['titulo'];
-            $autor = $_GET['autor'];
-            $anioPublicacion = intval($_GET['anioPublicacion']);
-            $estado = $_GET['estado'];
-            $fechaAdquisicion = $_GET['fechaAdquisicion'];
-            $tipo = $_GET['tipo'];
+    if ($tipoEntrada == 'una') {
+        $entrada = new EntradaUnaColumna([
+            'id' => $id,
+            'fecha_creacion' => $fecha_creacion,
+            'titulo' => $titulo1,
+            'descripcion' => $descripcion1
+        ]);
+    } elseif ($tipoEntrada == 'dos') {
+        $entrada = new EntradaDosColumnas([
+            'id' => $id,
+            'fecha_creacion' => $fecha_creacion,
+            'titulo1' => $titulo1,
+            'descripcion1' => $descripcion1,
+            'titulo2' => $titulo2,
+            'descripcion2' => $descripcion2
+        ]);
+    } else {
+        $entrada = new EntradaTresColumnas([
+            'id' => $id,
+            'fecha_creacion' => $fecha_creacion,
+            'titulo1' => $titulo1,
+            'descripcion1' => $descripcion1,
+            'titulo2' => $titulo2,
+            'descripcion2' => $descripcion2,
+            'titulo3' => $titulo3,
+            'descripcion3' => $descripcion3
+        ]);
+    }
 
-            // Implementar la lógica para agregar el recurso al gestor
-        }
-        break;
+    if ($_POST['action'] === 'add') {
+        $gestorBlog->agregarEntrada($entrada);
+        $mensaje = "Entrada agregada con éxito.";
+    } elseif ($_POST['action'] === 'edit') {
+        $gestorBlog->editarEntrada($entrada);
+        $mensaje = "Entrada actualizada con éxito.";
+    }
 
-    case 'edit':
-        if (isset($_GET['id']) && isset($_GET['titulo']) && isset($_GET['autor']) && isset($_GET['anioPublicacion']) && isset($_GET['estado']) && isset($_GET['fechaAdquisicion']) && isset($_GET['tipo'])) {
-            $id = intval($_GET['id']);
-            $titulo = $_GET['titulo'];
-            $autor = $_GET['autor'];
-            $anioPublicacion = intval($_GET['anioPublicacion']);
-            $estado = $_GET['estado'];
-            $fechaAdquisicion = $_GET['fechaAdquisicion'];
-            $tipo = $_GET['tipo'];
-
-            // Implementar la lógica para actualizar el recurso en el gestor
-        }
-        break;
-
-    case 'delete':
-        if (isset($_GET['id'])) {
-            $id = intval($_GET['id']);
-            // Implementar la lógica para eliminar el recurso
-        }
-        break;
-
-    case 'status':
-        if (isset($_GET['id']) && isset($_GET['estado'])) {
-            $id = intval($_GET['id']);
-            $nuevoEstado = $_GET['estado'];
-            // Implementar la lógica para cambiar el estado del recurso
-        }
-        break;
-
-    case 'filter':
-        if (isset($_GET['filterEstado'])) {
-            $filterEstado = $_GET['filterEstado'];
-            // Implementar la lógica para filtrar los recursos por estado
-        }
-        break;
-
-    case 'sort':
-        if (isset($_GET['field']) && isset($_GET['direction'])) {
-            $sortField = $_GET['field'];
-            $sortDirection = $_GET['direction'];
-            // Implementar la lógica para ordenar los recursos
-        }
-        break;
-
-    case 'list':
-    default:
-        // Implementar la lógica para listar todos los recursos
-        break;
+    $action = 'list';
 }
+
+if ($action === 'delete' && isset($_GET['id'])) {
+    $gestorBlog->eliminarEntrada($_GET['id']);
+    $mensaje = "Entrada eliminada con éxito.";
+    $action = 'list';
+}
+
+if ($action === 'move' && isset($_GET['id']) && isset($_GET['direction'])) {
+    $gestorBlog->moverEntrada($_GET['id'], $_GET['direction']);
+    $mensaje = "Entrada movida con éxito.";
+    $action = 'list';
+}
+
+$entradas = $gestorBlog->obtenerEntradas();
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Biblioteca</title>
+    <title>Gestor de Blog</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .move-arrow {
+            padding: 0.5rem; 
+            cursor: pointer;
+            text-align: center;
+            color: #001; 
+            font-size: 1.5rem; 
+        }
+        .move-arrow.disabled {
+            color: #ccc; 
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Gestor de Biblioteca</h1>
+        <h1 class="mb-4">Gestor de Blog</h1>
         
-        <?php if (isset($mensaje)): ?>
+        <?php if ($mensaje): ?>
             <div class="alert alert-success" role="alert">
                 <?php echo $mensaje; ?>
             </div>
         <?php endif; ?>
 
-        <form action="index.php" method="GET" class="row g-3 mb-4 align-items-end">
-            <input type="hidden" name="action" value="<?php echo $recursoEnEdicion ? 'edit' : 'add'; ?>">
-            <?php if ($recursoEnEdicion): ?>
-                <input type="hidden" name="id" value="<?php echo $recursoEnEdicion->id; ?>">
-            <?php endif; ?>
-            
-            <div class="col">
-                <input type="text" class="form-control" name="titulo" placeholder="Título" required
-                       value="<?php echo $recursoEnEdicion ? $recursoEnEdicion->titulo : ''; ?>">
-            </div>
-            <div class="col">
-                <input type="text" class="form-control" name="autor" placeholder="Autor" required
-                       value="<?php echo $recursoEnEdicion ? $recursoEnEdicion->autor : ''; ?>">
-            </div>
-            <div class="col">
-                <input type="number" class="form-control" name="anioPublicacion" placeholder="Año" required
-                       value="<?php echo $recursoEnEdicion ? $recursoEnEdicion->anioPublicacion : ''; ?>">
-            </div>
-            <div class="col">
-                <select class="form-select" name="estado" required>
-                    <option value="">Estado</option>
-                    <option value="disponible" <?php echo ($recursoEnEdicion && $recursoEnEdicion->estado == 'disponible') ? 'selected' : ''; ?>>Disponible</option>
-                    <option value="prestado" <?php echo ($recursoEnEdicion && $recursoEnEdicion->estado == 'prestado') ? 'selected' : ''; ?>>Prestado</option>
-                    <option value="en_reparacion" <?php echo ($recursoEnEdicion && $recursoEnEdicion->estado == 'en_reparacion') ? 'selected' : ''; ?>>En Reparación</option>
-                </select>
-            </div>
-            <div class="col">
-                <input type="date" class="form-control" name="fechaAdquisicion" required
-                       value="<?php echo $recursoEnEdicion ? $recursoEnEdicion->fechaAdquisicion : ''; ?>">
-            </div>
-            <div class="col">
-                <select class="form-select" name="tipo" required id="tipoRecurso">
-                    <option value="">Tipo de Recurso</option>
-                    <option value="Libro" <?php echo ($recursoEnEdicion && $recursoEnEdicion->tipo == 'Libro') ? 'selected' : ''; ?>>Libro</option>
-                    <option value="Revista" <?php echo ($recursoEnEdicion && $recursoEnEdicion->tipo == 'Revista') ? 'selected' : ''; ?>>Revista</option>
-                    <option value="DVD" <?php echo ($recursoEnEdicion && $recursoEnEdicion->tipo == 'DVD') ? 'selected' : ''; ?>>DVD</option>
-                </select>
-            </div>
-            <div class="col" id="columnaLibro" style="display:none;">
-                <input type="text" class="form-control" id="campoLibro" name="isbn" placeholder="ISBN">
-            </div>
-            <div class="col" id="columnaRevista" style="display:none;">
-                <input type="number" class="form-control" id="campoRevista" name="numeroEdicion" placeholder="Número de Edición">
-            </div>
-            <div class="col" id="columnaDVD" style="display:none;">
-                <input type="number" class="form-control" id="campoDVD" name="duracion" placeholder="Duración (minutos)">
-            </div>
-            <div class="col">
-                <button type="submit" class="btn btn-primary w-100">
-                    <?php echo $recursoEnEdicion ? 'Actualizar' : 'Agregar'; ?>
-                </button>
-            </div>
-        </form>
+        <nav class="mb-4">
+            <a href="index.php?action=list" class="btn btn-primary">Listar Entradas</a>
+            <a href="index.php?action=add" class="btn btn-success">Agregar Entrada</a>
+            <a href="ver_blog.php" class="btn btn-info">Ver Blog</a>
+        </nav>
 
-        <!-- Filtro por estado -->
-        <form action="index.php" method="GET" class="row g-3 mb-4 align-items-end">
-            <input type="hidden" name="action" value="filter">
-            <div class="col-auto">
-                <select name="filterEstado" class="form-select">
-                    <option value="">Todos los estados</option>
-                    <?php foreach ($estadosLegibles as $valor => $texto): ?>
-                        <option value="<?php echo $valor; ?>" <?php echo $filterEstado == $valor ? 'selected' : ''; ?>><?php echo $texto; ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary">Filtrar</button>
-            </div>
-        </form>
-
-<!-- Tabla de recursos -->
-<table class="table table-striped table-hover">
-            <thead>
-                <tr>
-                    <th><a href="index.php?action=sort&field=id&direction=<?php echo $sortField == 'id' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">ID <?php echo $sortField == 'id' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th><a href="index.php?action=sort&field=titulo&direction=<?php echo $sortField == 'titulo' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">Título <?php echo $sortField == 'titulo' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th><a href="index.php?action=sort&field=autor&direction=<?php echo $sortField == 'autor' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">Autor <?php echo $sortField == 'autor' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th><a href="index.php?action=sort&field=anioPublicacion&direction=<?php echo $sortField == 'anioPublicacion' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">Año <?php echo $sortField == 'anioPublicacion' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th><a href="index.php?action=sort&field=estado&direction=<?php echo $sortField == 'estado' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">Estado <?php echo $sortField == 'estado' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th><a href="index.php?action=sort&field=fechaAdquisicion&direction=<?php echo $sortField == 'fechaAdquisicion' && $sortDirection == 'ASC' ? 'DESC' : 'ASC'; ?>&filterEstado=<?php echo $filterEstado; ?>">Fecha Adquisición <?php echo $sortField == 'fechaAdquisicion' ? ($sortDirection == 'ASC' ? '▲' : '▼') : ''; ?></a></th>
-                    <th>Detalles </th>
-                    <th>Tipo</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($recursos as $recurso): ?>
+        <?php if ($action === 'list'): ?>
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td><?php echo $recurso->id; ?></td>
-                        <td><?php echo $recurso->titulo; ?></td>
-                        <td><?php echo $recurso->autor; ?></td>
-                        <td><?php echo $recurso->anioPublicacion; ?></td>
-                        <td><?php echo $recurso->estado; ?></td>
-                        <td><?php echo $recurso->fechaAdquisicion; ?></td>
-                        <td><?php echo $recurso->obtenerDetallesPrestamo(); ?></td>
-                        <td><?php echo $recurso->tipo; ?></td>
-
-                        <td>
-                            <a href='index.php?action=edit&id=<?php echo $recurso->id; ?>' class='btn btn-sm btn-warning'><i class='fas fa-edit'></i></a>
-                            <a href='index.php?action=delete&id=<?php echo $recurso->id; ?>' class='btn btn-sm btn-danger' onclick="return confirm('¿Está seguro de que desea eliminar este recurso?');"><i class='fas fa-trash'></i></a>
-                            <select class='form-select form-select-sm d-inline-block w-auto' onchange="cambiarEstado(this, <?php echo $recurso->id; ?>)">
-                                <option value=''>Cambiar estado</option>
-                                <?php if ($recurso->estado !== 'disponible'): ?>
-                                    <option value='disponible'>Disponible</option>
-                                <?php endif; ?>
-                                <?php if ($recurso->estado !== 'prestado'): ?>
-                                    <option value='prestado'>Prestado</option>
-                                <?php endif; ?>
-                                <?php if ($recurso->estado !== 'en_reparacion'): ?>
-                                    <option value='en_reparacion'>En reparación</option>
-                                <?php endif; ?>
-                            </select>
-                        </td>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Fecha de Creación</th>
+                        <th>Tipo</th>
+                        <th>Acciones</th>
+                        <th>Orden</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($entradas as $index => $entrada): ?>
+                        <tr>
+                            <td><?php echo $entrada->id; ?></td>
+                            <td><?php echo $entrada instanceof EntradaUnaColumna ? $entrada->titulo : $entrada->titulo1; ?></td>
+                            <td><?php echo $entrada->fecha_creacion; ?></td>
+                            <td><?php echo get_class($entrada); ?></td>
+                            <td>
+                                <a href="index.php?action=edit&id=<?php echo $entrada->id; ?>" class="btn btn-warning btn-sm">Editar</a>
+                                <a href="index.php?action=delete&id=<?php echo $entrada->id; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar esta entrada?')">Eliminar</a>
+                            </td>
+                            <td>
+                                <!-- Flechas con padding para mover hacia arriba o abajo -->
+                                <span onclick="location.href='index.php?action=move&id=<?php echo $entrada->id; ?>&direction=arriba'" class="move-arrow <?php echo ($index === 0) ? 'disabled' : ''; ?>">&#x25B2;</span>
+                                <span onclick="location.href='index.php?action=move&id=<?php echo $entrada->id; ?>&direction=abajo'" class="move-arrow <?php echo ($index === count($entradas) - 1) ? 'disabled' : ''; ?>">&#x25BC;</span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+        <?php elseif ($action === 'add' || $action === 'edit'): ?>
+            <?php
+            $entradaEditar = null;
+            if ($action === 'edit' && isset($_GET['id'])) {
+                $entradaEditar = $gestorBlog->obtenerEntrada($_GET['id']);
+            }
+            ?>
+            <form action="index.php" method="post">
+                <input type="hidden" name="action" value="<?php echo $action; ?>">
+                <?php if ($entradaEditar): ?>
+                    <input type="hidden" name="id" value="<?php echo $entradaEditar->id; ?>">
+                    <input type="hidden" name="fecha_creacion" value="<?php echo $entradaEditar->fecha_creacion; ?>">
+                <?php endif; ?>
+
+                <div class="mb-3">
+                    <label for="tipoEntrada" class="form-label">Tipo de Entrada</label>
+                    <select class="form-control" id="tipoEntrada" name="tipoEntrada" required>
+                        <option value="una" <?php echo ($entradaEditar && $entradaEditar instanceof EntradaUnaColumna) ? 'selected' : ''; ?>>Una Columna</option>
+                        <option value="dos" <?php echo ($entradaEditar && $entradaEditar instanceof EntradaDosColumnas) ? 'selected' : ''; ?>>Dos Columnas</option>
+                        <option value="tres" <?php echo ($entradaEditar && $entradaEditar instanceof EntradaTresColumnas) ? 'selected' : ''; ?>>Tres Columnas</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="titulo1" class="form-label">Título 1</label>
+                    <input type="text" class="form-control" id="titulo1" name="titulo1" value="<?php echo $entradaEditar ? $entradaEditar->titulo1 : ''; ?>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descripcion1" class="form-label">Descripción 1</label>
+                    <textarea class="form-control" id="descripcion1" name="descripcion1" rows="3" required><?php echo $entradaEditar ? $entradaEditar->descripcion1 : ''; ?></textarea>
+                </div>
+
+                <div class="mb-3 d-none" id="titulo2-group">
+                    <label for="titulo2" class="form-label">Título 2</label>
+                    <input type="text" class="form-control" id="titulo2" name="titulo2" value="<?php echo $entradaEditar ? $entradaEditar->titulo2 : ''; ?>">
+                </div>
+
+                <div class="mb-3 d-none" id="descripcion2-group">
+                    <label for="descripcion2" class="form-label">Descripción 2</label>
+                    <textarea class="form-control" id="descripcion2" name="descripcion2" rows="3"><?php echo $entradaEditar ? $entradaEditar->descripcion2 : ''; ?></textarea>
+                </div>
+
+                <div class="mb-3 d-none" id="titulo3-group">
+                    <label for="titulo3" class="form-label">Título 3</label>
+                    <input type="text" class="form-control" id="titulo3" name="titulo3" value="<?php echo $entradaEditar ? $entradaEditar->titulo3 : ''; ?>">
+                </div>
+
+                <div class="mb-3 d-none" id="descripcion3-group">
+                    <label for="descripcion3" class="form-label">Descripción 3</label>
+                    <textarea class="form-control" id="descripcion3" name="descripcion3" rows="3"><?php echo $entradaEditar ? $entradaEditar->descripcion3 : ''; ?></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="index.php?action=list" class="btn btn-secondary">Cancelar</a>
+            </form>
+        <?php endif; ?>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tipoRecurso = document.getElementById('tipoRecurso');
-            const columnaLibro = document.getElementById('columnaLibro');
-            const columnaRevista = document.getElementById('columnaRevista');
-            const columnaDVD = document.getElementById('columnaDVD');
-
-            function actualizarCamposEspecificos() {
-                columnaLibro.style.display = 'none';
-                columnaRevista.style.display = 'none';
-                columnaDVD.style.display = 'none';
-
-                switch(tipoRecurso.value) {
-                    case 'Libro':
-                        columnaLibro.style.display = 'block';
-                        break;
-                    case 'Revista':
-                        columnaRevista.style.display = 'block';
-                        break;
-                    case 'DVD':
-                        columnaDVD.style.display = 'block';
-                        break;
-                }
-            }
-
-            tipoRecurso.addEventListener('change', actualizarCamposEspecificos);
-            actualizarCamposEspecificos();
+        // Script para mostrar/ocultar campos según el tipo de entrada
+        document.getElementById('tipoEntrada').addEventListener('change', function() {
+            const tipo = this.value;
+            document.getElementById('titulo2-group').classList.toggle('d-none', tipo !== 'dos' && tipo !== 'tres');
+            document.getElementById('descripcion2-group').classList.toggle('d-none', tipo !== 'dos' && tipo !== 'tres');
+            document.getElementById('titulo3-group').classList.toggle('d-none', tipo !== 'tres');
+            document.getElementById('descripcion3-group').classList.toggle('d-none', tipo !== 'tres');
         });
-
-        function cambiarEstado(selectElement, recursoId) {
-            if (selectElement.value) {
-                window.location.href = 'index.php?action=status&id=' + recursoId + '&estado=' + selectElement.value;
-            }
-        }        
     </script>
 </body>
 </html>

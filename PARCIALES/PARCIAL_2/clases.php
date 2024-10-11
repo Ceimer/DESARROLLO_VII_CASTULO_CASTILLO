@@ -1,22 +1,16 @@
 <?php
-interface Prestable {
-    public function obtenerDetallesPrestamo(): string;
+interface Detalle {
+    public function obtenerDetallesEspecificos(): string;
 }
-abstract class RecursoBiblioteca implements Prestable {
-    public $id;
-    public $titulo;
-    public $autor;
-    public $anioPublicacion;
-    public $estado;
-    public $fechaAdquisicion;
-    public $tipo;
-    public $estadosLegibles = [
-        'disponible' → 'DISPONIBLE',
-        'prestado' → ' PRESTADO',
-        'en_reparacion' => 'EN REPARACION'
-    ];
 
-    public function __construct($datos) {
+ abstract class Entrada {
+    public $id;
+    public $fecha_creacion;
+    public $tipo;
+    public $titulo;
+    public $descripcion;
+
+    public function __construct($datos = []) {
         foreach ($datos as $key => $value) {
             if (property_exists($this, $key)) {
                 $this->$key = $value;
@@ -25,129 +19,175 @@ abstract class RecursoBiblioteca implements Prestable {
     }
 }
 
-// Implementar las clases Libro, Revista y DVD aquí
-class Libro extends RecursoBiblioteca implements Prestable {
-    private $isbn;
+class EntradaUnaColumna extends Entrada implements Detalle {
+    public $titulo;
+    public $descripcion;
 
-    public function __construct($id, $titulo, $autor, $anio, $estado, $isbn) {
-        parent::__construct($id, $titulo, $autor, $anio, $estado);
-        $this->isbn = $isbn;
+    public function obtenerDetallesEspecificos(): string{
+       return "Entrada de una columna: [titulo]";
     }
 
-    public function obtenerDetallesPrestamo(): string {
-        return "Libro ISBN: {$this->isbn}";
-    }
 }
 
-class Revista extends RecursoBiblioteca implements Prestable {
-    private $numeroEdicion;
-
-    public function __construct($id, $titulo, $autor, $anio, $estado, $numeroEdicion) {
-        parent::__construct($id, $titulo, $autor, $anio, $estado);
-        $this->numeroEdicion = $numeroEdicion;
+class EntradaDosColumnas extends Entrada implements Detalle{
+    public $titulo1;
+    public $descripcion;
+    public $titulo2;
+    public $descripcion2;
+    
+    public function obtenerDetallesEspecificos(): string{
+        return "Entrada de 2 columna: [titulo1] | [titulo2]";
     }
 
-    public function obtenerDetallesPrestamo(): string {
-        return "Revista N° Edición: {$this->numeroEdicion}";
-    }
 }
 
-class DVD extends RecursoBiblioteca implements Prestable {
-    private $duracion;
+class EntradaTresCulumnas extends Entrada implements Detalle{
+    public $titulo1;
+    public $descripcion;
+    public $titulo2;
+    public $descripcion2;
+    public $titulo3;
+    public $descripcion3;
 
-    public function __construct($id, $titulo, $autor, $anio, $estado, $duracion) {
-        parent::__construct($id, $titulo, $autor, $anio, $estado);
-        $this->duracion = $duracion;
+    public function obtenerDetallesEspecificos(): string{
+        return "Entrada de 3 columna: [titulo1] | [titulo2] | [titulo3]";
     }
 
-    public function obtenerDetallesPrestamo(): string {
-        return "DVD Duración: {$this->duracion} minutos";
-    }
 }
 
-class GestorBiblioteca {
-    private $recursos = [];
+class GestorBlog {
+    private $entradas = [];
 
-
-    public function cargarRecursos($archivoJSON) {
-        $datos = json_decode(file_get_contents('biblioteca.json'),true);
-        foreach ($datos as $recurso){
-            $this->agregarRecursoDesdeArray($recurso);
+    public function cargarEntradas() {
+        if (file_exists('blog.json')) {
+            $json = file_get_contents('blog.json');
+            $data = json_decode($json, true);
+            foreach ($data as $entradaData) {
+                $this->entradas[] = new EntradaUnaColumna($entradaData);
+            }
         }
     }
 
+    public function guardarEntradas() {
+        $data = array_map(function($entrada) {
+            return get_object_vars($entrada);
+        }, $this->entradas);
+        file_put_contents('blog.json', json_encode($data, JSON_PRETTY_PRINT));
+    }
 
-    private function agregarRecursoDesdeArray($recurso) {
-        switch ($recurso['tipo']) {
-            case 'libro':
-                $nuevoRecurso = new Libro($recurso['id'], $recurso['titulo'], $recurso['autor'], $recurso['anio'], $recurso['estado'], $recurso['isbn']);
+    public function obtenerEntradas() {
+        return $this->entradas;
+    }
+
+    public function agregarEntrada($entrada) {
+        $this->entradas[] = $entrada;
+        $this->guardarEntradas();
+    }
+
+    public function editarEntrada(Entrada $entrada) {
+        foreach ($this->entradas as &$e) {
+            if ($e->id === $entrada->id) {
+                $e = $entrada;
                 break;
-            case 'revista':
-                $nuevoRecurso = new Revista($recurso['id'], $recurso['titulo'], $recurso['autor'], $recurso['anio'], $recurso['estado'], $recurso['numeroEdicion']);
+            }
+        }
+        $this->guardarEntradas();
+    }
+
+    public function eliminarEntrada($id) {
+        $this->entradas = array_filter($this->entradas, function($entrada) use ($id) {
+            return $entrada->id !== $id;
+        });
+        $this->guardarEntradas();
+    }
+
+    public function obtenerEntrada($id) {
+        foreach ($this->entradas as $entrada) {
+            if ($entrada->id === $id) {
+                return $entrada;
+            }
+        }
+        return null;
+    }
+
+    public function moverEntrada($id, $direccion) {
+        $index = null;
+        foreach ($this->entradas as $i => $entrada) {
+            if ($entrada->id === $id) {
+                $index = $i;
                 break;
-            case 'dvd':
-                $nuevoRecurso = new DVD($recurso['id'], $recurso['titulo'], $recurso['autor'], $recurso['anio'], $recurso['estado'], $recurso['duracion']);
+            }
+        }
+
+        if ($index !== null) {
+            if ($direccion === 'arriba' && $index > 0) {
+                $temp = $this->entradas[$index - 1];
+                $this->entradas[$index - 1] = $this->entradas[$index];
+                $this->entradas[$index] = $temp;
+            } elseif ($direccion === 'abajo' && $index < count($this->entradas) - 1) {
+                $temp = $this->entradas[$index + 1];
+                $this->entradas[$index + 1] = $this->entradas[$index];
+                $this->entradas[$index] = $temp;
+            }
+            $this->guardarEntradas();
+        }
+    }
+}
+
+// Uso del sistema de gestión de blog
+$gestorBlog = new GestorBlog();
+$gestorBlog->cargarEntradas();
+
+$nuevaEntrada = new EntradaUnaColumna([
+    'id' => uniqid(),
+    'fecha_creacion' => date('Y-m-d H:i:s'),
+    'tipo' => 'Artículo',
+    'titulo' => 'Mi nueva entrada',
+    'descripcion' => 'Esta es la descripción de mi nueva entrada.'
+]);
+$gestorBlog->agregarEntrada($nuevaEntrada);
+
+// Editar una entrada existente
+$entradaEditada = new EntradaUnaColumna([
+    'id' => $nuevaEntrada->id,
+    'fecha_creacion' => $nuevaEntrada->fecha_creacion,
+    'tipo' => 'Artículo',
+    'titulo' => 'Entrada editada',
+    'descripcion' => 'Esta es la descripción de la entrada editada.'
+]);
+$gestorBlog->editarEntrada($entradaEditada);
+
+// Obtener una entrada por ID
+$entradaObtenida = $gestorBlog->obtenerEntrada($nuevaEntrada->id);
+
+// Mover una entrada hacia arriba
+$gestorBlog->moverEntrada($nuevaEntrada->id, 'arriba');
+
+// Eliminar una entrada por ID
+$gestorBlog->eliminarEntrada($nuevaEntrada->id);
+
+/*
+public function cargarBlog() {
+    $json = file_get_contents('blog.json');
+    $data = json_decode($json, true);
+    foreach ($data as $BlogData) {
+        switch ($BlogData['tipo']) {
+            case 'COLUMNA1':
+                $Blog = new columna($BlogData);
+                break;
+            case 'COLUMNA2':
+                $Blog = new columna($BlogData);
+                break;
+            case 'COLUMNA3':
+                $Blog = new columna($BlogData);
                 break;
             default:
-                return;
+                $Blog = new columna($BlogData);
         }
-        $this->agregarRecurso($nuevoRecurso);
+        $this->Blog[] = $Blog;
     }
-
-    public function agregarRecurso(RecursoBiblioteca $recurso) {
-        $this->rescursos[] = $recurso;
-
-    }
-
-    public function eliminarRecurso($id) {
-        foreach ($this-> recursos as $key => $recurso) {
-            if($recurso ->id === $id){
-                inset($this-> recursos[$key]);
-                break;
-            }
-        
-        }
-    }
-
-    public function actualizarRecurso(RecursoBiblioteca $recurso){
-        foreach ($this-> recurso as $key){
-            if ($recurso->id === $id){
-                $recurso->estado = $nuevoEstado;
-                break;
-            }
-        }
-    }
-
-    public function buscarRecursosPorEstado($estado) {
-        return array_filter($this->recursos, function ($recurso) use ($estado) {
-            return $recurso->estado === $estado;
-        });
-    }
-
-    public function listarRecursos($filtroEstado = '', $campoOrden = 'id', $direccionOrden = 'ASC') {
-        $recursos = $filtroEstado ? $this->buscarRecursosPorEstado($filtroEstado) : $this->recursos;
-        usort($recursos, function ($a, $b) use ($campoOrden, $direccionOrden) {
-            if ($a->$campoOrden === $b->$campoOrden) {
-                return 0;
-            }
-            return ($direccionOrden === 'ASC' ? $a->$campoOrden < $b->$campoOrden : $a->$campoOrden > $b->$campoOrden) ? -1 : 1;
-        });
-        return $recursos;
-    }
-
-    public function guardarRecursos($archivoJSON) {
-        $datos = array_map(function ($recurso) {
-            return [
-                'id' => $recurso->id,
-                'titulo' => $recurso->titulo,
-                'autor' => $recurso->autor,
-                'anio' => $recurso->anio,
-                'estado' => $recurso->estado,
-                'tipo' => strtolower((new ReflectionClass($recurso))->getShortName())
-            ];
-        }, $this->recursos);
-        file_put_contents('biblioteca.json', json_encode($datos));
-    }
-
+    return $this->Blog;
 }
-
+*/
+?>
+  

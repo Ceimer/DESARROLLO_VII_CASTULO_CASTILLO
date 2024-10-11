@@ -1,0 +1,65 @@
+[
+    {
+        "id": "1",
+        "fecha_creacion": "2024-09-27",
+        "tipo": 1,
+        "titulo": "Mi primera entrada",
+        "descripcion": "Esta es mi primera entrada en el blog. \u00a1Estoy emocionado de comenzar esta nueva aventura!"
+    },
+    {
+        "id": 2,
+        "fecha_creacion": "2023-05-02",
+        "tipo": 2,
+        "titulo": null,
+        "descripcion": null
+    },
+    {
+        "id": 3,
+        "fecha_creacion": "2023-05-03",
+        "tipo": 3,
+        "titulo": null,
+        "descripcion": null
+    },
+    {
+        "id": "6708644886b46",
+        "fecha_creacion": "2024-10-10 23:33:28",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    },
+    {
+        "id": "670869755a842",
+        "fecha_creacion": "2024-10-10 23:55:33",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    },
+    {
+        "id": "67086f5841e3b",
+        "fecha_creacion": "2024-10-11 00:20:40",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    },
+    {
+        "id": "6708703d98a1f",
+        "fecha_creacion": "2024-10-11 00:24:29",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    },
+    {
+        "id": "67087457a9bc3",
+        "fecha_creacion": "2024-10-11 00:41:59",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    },
+    {
+        "id": "6708747f6f8a8",
+        "fecha_creacion": "2024-10-11 00:42:39",
+        "tipo": "Art\u00edculo",
+        "titulo": "Mi nueva entrada",
+        "descripcion": "Esta es la descripci\u00f3n de mi nueva entrada."
+    }
+]
