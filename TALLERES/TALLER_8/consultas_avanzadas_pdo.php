@@ -2,63 +2,68 @@
 require_once "config_pdo.php";
 
 try {
-    // 1. Mostrar todos los usuarios junto con el número de publicaciones que han hecho
-    $sql = "SELECT u.id, u.nombre, COUNT(p.id) as num_publicaciones 
-            FROM usuarios u 
-            LEFT JOIN publicaciones p ON u.id = p.usuario_id 
-            GROUP BY u.id";
-
-    $stmt = $pdo->query($sql);
-
-    echo "<h3>Usuarios y número de publicaciones:</h3>";
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        echo "Usuario: " . $row['nombre'] . ", Publicaciones: " . $row['num_publicaciones'] . "<br>";
-    }
-
-    // 2. Listar todas las publicaciones con el nombre del autor
+    // Mostrar las últimas 5 publicaciones con el nombre del autor y la fecha de publicación
     $sql = "SELECT p.titulo, u.nombre as autor, p.fecha_publicacion 
             FROM publicaciones p 
             INNER JOIN usuarios u ON p.usuario_id = u.id 
-            ORDER BY p.fecha_publicacion DESC";
+            ORDER BY p.fecha_publicacion DESC 
+            LIMIT 5";
 
-    $stmt = $pdo->query($sql);
-
-    echo "<h3>Publicaciones con nombre del autor:</h3>";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    
+    echo "<h3>Últimas 5 publicaciones:</h3>";
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         echo "Título: " . $row['titulo'] . ", Autor: " . $row['autor'] . ", Fecha: " . $row['fecha_publicacion'] . "<br>";
     }
 
-    // 3. Encontrar el usuario con más publicaciones
-    $sql = "SELECT u.nombre, COUNT(p.id) as num_publicaciones 
+    // Listar los usuarios que no han realizado ninguna publicación
+    $sql = "SELECT u.nombre 
             FROM usuarios u 
             LEFT JOIN publicaciones p ON u.id = p.usuario_id 
-            GROUP BY u.id 
-            ORDER BY num_publicaciones DESC 
-            LIMIT 1";
+            WHERE p.id IS NULL";
 
-    $stmt = $pdo->query($sql);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    
+    echo "<h3>Usuarios sin publicaciones:</h3>";
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo "Usuario: " . $row['nombre'] . "<br>";
+    }
+
+    // Calcular el promedio de publicaciones por usuario
+    $sql = "SELECT AVG(num_publicaciones) as promedio_publicaciones 
+            FROM (SELECT COUNT(p.id) as num_publicaciones 
+                  FROM usuarios u 
+                  LEFT JOIN publicaciones p ON u.id = p.usuario_id 
+                  GROUP BY u.id) as subquery";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo "<h3>Promedio de publicaciones por usuario:</h3>";
+    echo "Promedio: " . $row['promedio_publicaciones'];
 
-    echo "<h3>Usuario con más publicaciones:</h3>";
-    echo "Nombre: " . $row['nombre'] . ", Número de publicaciones: " . $row['num_publicaciones'];
+    // Encontrar la publicación más reciente de cada usuario
+    $sql = "SELECT u.nombre as autor, p.titulo, p.fecha_publicacion 
+            FROM usuarios u 
+            INNER JOIN publicaciones p ON u.id = p.usuario_id 
+            WHERE p.fecha_publicacion = (SELECT MAX(p2.fecha_publicacion) 
+                                          FROM publicaciones p2 
+                                          WHERE p2.usuario_id = u.id)";
 
-} catch(PDOException $e) {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    
+    echo "<h3>Publicación más reciente de cada usuario:</h3>";
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo "Autor: " . $row['autor'] . ", Título: " . $row['titulo'] . ", Fecha: " . $row['fecha_publicacion'] . "<br>";
+    }
+
+} catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
 
-$pdo = null;
+$pdo = null; // Cerrar la conexión PDO
 ?>
-
-
-/*
-Tarea para los estudiantes:
-Implementa las siguientes consultas tanto con MySQLi como con PDO:
-
-Mostrar las últimas 5 publicaciones con el nombre del autor y la fecha de publicación.
-Listar los usuarios que no han realizado ninguna publicación.
-Calcular el promedio de publicaciones por usuario.
-Encontrar la publicación más reciente de cada usuario.
-Consideraciones adicionales:
-Asegúrate de usar consultas preparadas donde sea apropiado para prevenir inyecciones SQL.
-Maneja adecuadamente los casos en los que no se encuentren resultados.
-Considera la eficiencia de tus consultas, especialmente cuando trabajes con grandes volúmenes de datos.*/
