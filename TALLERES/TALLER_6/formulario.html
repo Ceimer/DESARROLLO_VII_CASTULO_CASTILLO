@@ -6,37 +6,55 @@
     <title>Formulario de Registro Avanzado</title>
 </head>
 <body>
+
+    <?php
+    session_start();
+    $datos = isset($_SESSION['datos']) ? $_SESSION['datos'] : [];
+    $errores = isset($_SESSION['errores']) ? $_SESSION['errores'] : [];
+    ?>
+
     <h2>Formulario de Registro Avanzado</h2>
+
+    <?php if (!empty($errores)): ?>
+        <div style="color: red;">
+            <ul>
+                <?php foreach ($errores as $error): ?>
+                    <li><?php echo $error; ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+
     <form action="procesar.php" method="POST" enctype="multipart/form-data">
         <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required><br><br>
+        <input type="text" id="nombre" name="nombre" value="<?php echo isset($datos['nombre']) ? htmlspecialchars($datos['nombre']) : ''; ?>" required><br><br>
 
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br><br>
+        <input type="email" id="email" name="email" value="<?php echo isset($datos['email']) ? htmlspecialchars($datos['email']) : ''; ?>" required><br><br>
 
-        <label for="edad">Edad:</label>
-        <input type="number" id="edad" name="edad" required><br><br>
+        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<?php echo isset($datos['fecha_nacimiento']) ? htmlspecialchars($datos['fecha_nacimiento']) : ''; ?>" required><br><br>
 
         <label for="sitio_web">Sitio Web:</label>
-        <input type="url" id="sitio_web" name="sitio_web"><br><br>
+        <input type="url" id="sitio_web" name="sitio_web" value="<?php echo isset($datos['sitio_web']) ? htmlspecialchars($datos['sitio_web']) : ''; ?>"><br><br>
 
         <label for="genero">Género:</label>
         <select id="genero" name="genero">
-            <option value="masculino">Masculino</option>
-            <option value="femenino">Femenino</option>
-            <option value="otro">Otro</option>
+            <option value="masculino" <?php echo (isset($datos['genero']) && $datos['genero'] == 'masculino') ? 'selected' : ''; ?>>Masculino</option>
+            <option value="femenino" <?php echo (isset($datos['genero']) && $datos['genero'] == 'femenino') ? 'selected' : ''; ?>>Femenino</option>
+            <option value="otro" <?php echo (isset($datos['genero']) && $datos['genero'] == 'otro') ? 'selected' : ''; ?>>Otro</option>
         </select><br><br>
 
         <label>Intereses:</label><br>
-        <input type="checkbox" id="deportes" name="intereses[]" value="deportes">
+        <input type="checkbox" id="deportes" name="intereses[]" value="deportes" <?php echo (isset($datos['intereses']) && in_array('deportes', $datos['intereses'])) ? 'checked' : ''; ?>>
         <label for="deportes">Deportes</label><br>
-        <input type="checkbox" id="musica" name="intereses[]" value="musica">
+        <input type="checkbox" id="musica" name="intereses[]" value="musica" <?php echo (isset($datos['intereses']) && in_array('musica', $datos['intereses'])) ? 'checked' : ''; ?>>
         <label for="musica">Música</label><br>
-        <input type="checkbox" id="lectura" name="intereses[]" value="lectura">
+        <input type="checkbox" id="lectura" name="intereses[]" value="lectura" <?php echo (isset($datos['intereses']) && in_array('lectura', $datos['intereses'])) ? 'checked' : ''; ?>>
         <label for="lectura">Lectura</label><br><br>
 
         <label for="comentarios">Comentarios:</label><br>
-        <textarea id="comentarios" name="comentarios" rows="4" cols="50"></textarea><br><br>
+        <textarea id="comentarios" name="comentarios" rows="4" cols="50"><?php echo isset($datos['comentarios']) ? htmlspecialchars($datos['comentarios']) : ''; ?></textarea><br><br>
 
         <label for="foto_perfil">Foto de Perfil:</label>
         <input type="file" id="foto_perfil" name="foto_perfil"><br><br>
@@ -44,5 +62,6 @@
         <input type="submit" value="Enviar">
         <input type="reset" value="Limpiar">
     </form>
+
 </body>
 </html>
